@@ -5,19 +5,18 @@ import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IPersistableElement;
 import org.eclipse.ui.model.IWorkbenchAdapter;
-import org.eclipse.xtext.ui.editor.XtextEditor;
-import org.eclipse.xtext.xbase.lib.Pure;
+import org.eclipse.xtext.ui.editor.model.IXtextDocument;
 
-public class XtextEditorBasedEditorInput implements IEditorInput
+public class XtextDocumentBasedEditorInput implements IEditorInput
 {
-  private XtextEditor editor;
+  private IXtextDocument document;
 
   private IFile file;
 
-  public XtextEditorBasedEditorInput(final XtextEditor editor)
+  public XtextDocumentBasedEditorInput(final IXtextDocument document)
   {
-    this.editor = editor;
-    this.file = editor.getDocument().getAdapter(IFile.class);
+    this.document = document;
+    this.file = document.getAdapter(IFile.class);
   }
 
   @Override
@@ -54,16 +53,14 @@ public class XtextEditorBasedEditorInput implements IEditorInput
   @Override
   public <T extends Object> T getAdapter(final Class<T> adapter)
   {
-    return ((T) this.editor.getAdapter(adapter));
+    return (this.document.getAdapter(adapter));
   }
 
-  @Pure
-  public XtextEditor getEditor()
+  public IXtextDocument getDocument()
   {
-    return this.editor;
+    return this.document;
   }
 
-  @Pure
   public IFile getFile()
   {
     return this.file;

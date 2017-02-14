@@ -29,38 +29,40 @@ import org.eclipse.xtext.ui.editor.model.IXtextDocument;
 
 public class EventEditor extends EditorPart
 {
-  private XtextEditorBasedEditorInput xtextEditorInput;
+  private XtextDocumentBasedEditorInput xtextEditorInput;
   private ListViewer listViewer;
-
-  @Override
-  public void doSave(final IProgressMonitor monitor)
-  {
-    this.xtextEditorInput.getEditor().doSave(monitor);
-  }
-
-  @Override
-  public void doSaveAs()
-  {
-    this.xtextEditorInput.getEditor().doSaveAs();
-  }
 
   @Override
   public void init(final IEditorSite site, final IEditorInput input) throws PartInitException
   {
-    this.xtextEditorInput = (XtextEditorBasedEditorInput) input;
+    this.xtextEditorInput = (XtextDocumentBasedEditorInput) input;
     setSite(site);
   }
 
+  // not called because handled in StatemachineMultiPageEditor
   @Override
   public boolean isDirty()
   {
-    return this.xtextEditorInput.getEditor().isDirty();
+    return false;
   }
 
+  // not called because handled in StatemachineMultiPageEditor
+  @Override
+  public void doSave(final IProgressMonitor monitor)
+  {
+  }
+
+  // not called because handled in StatemachineMultiPageEditor
+  @Override
+  public void doSaveAs()
+  {
+  }
+
+  // not called because handled in StatemachineMultiPageEditor
   @Override
   public boolean isSaveAsAllowed()
   {
-    return this.xtextEditorInput.getEditor().isSaveAsAllowed();
+    return true;
   }
 
   @Override
@@ -109,6 +111,12 @@ public class EventEditor extends EditorPart
     refreshInput();
   }
 
+  /**
+   * Add a new event.
+   * 
+   * This initializes a new Event object, opens the dialog to let the user specify the event information and if the user closes the dialog by clicking ok, the
+   * new event is added to the Xtext document.
+   */
   protected void addEvent()
   {
     Event event = StatemachineFactory.eINSTANCE.createEvent();
@@ -118,13 +126,19 @@ public class EventEditor extends EditorPart
     boolean result = EditEventDialog.editEvent(getSite().getShell(), event);
     if (result)
     {
-      IXtextDocument doc = this.xtextEditorInput.getEditor().getDocument();
+      IXtextDocument doc = this.xtextEditorInput.getDocument();
       doc.modify(res -> ((Statemachine) res.getContents().get(0)).getEvents().add(event));
     }
 
     refreshInput();
   }
 
+  /**
+   * Edit an event.
+   * 
+   * This method opens a dialog to let the user specify the new name and code for the event. If the user closes the dialog by clicking OK, we search for the
+   * event in the XtextDocument (using the original name) and change its name and code.
+   */
   protected void editEvent()
   {
     IStructuredSelection selection = (IStructuredSelection) this.listViewer.getSelection();
@@ -134,7 +148,7 @@ public class EventEditor extends EditorPart
     boolean result = EditEventDialog.editEvent(getSite().getShell(), event);
     if (result)
     {
-      IXtextDocument doc = this.xtextEditorInput.getEditor().getDocument();
+      IXtextDocument doc = this.xtextEditorInput.getDocument();
       doc.modify(res -> {
         Statemachine statemachine = ((Statemachine) res.getContents().get(0));
         Optional<Event> found = statemachine.getEvents().stream().filter(e -> Objects.equals(e.getName(), originalName)).findFirst();
@@ -151,12 +165,17 @@ public class EventEditor extends EditorPart
     refreshInput();
   }
 
+  /**
+   * Delete an event.
+   * 
+   * This method searches for the selected event in the XtextDocument and deletes it.
+   */
   protected void removeEvent()
   {
     IStructuredSelection selection = (IStructuredSelection) this.listViewer.getSelection();
     Event event = (Event) selection.getFirstElement();
 
-    IXtextDocument doc = this.xtextEditorInput.getEditor().getDocument();
+    IXtextDocument doc = this.xtextEditorInput.getDocument();
     doc.modify(res -> {
       Statemachine statemachine = ((Statemachine) res.getContents().get(0));
       Optional<Event> found = statemachine.getEvents().stream().filter(e -> Objects.equals(e.getName(), event.getName())).findFirst();
@@ -170,9 +189,15 @@ public class EventEditor extends EditorPart
     refreshInput();
   }
 
+  /**
+   * Recalculates the input to the list viewer, so it is in sync with the source in the Xtext editor.
+   * 
+   * This is called - when the page becomes visible - after performing an edit operation
+   * 
+   */
   public void refreshInput()
   {
-    IXtextDocument doc = this.xtextEditorInput.getEditor().getDocument();
+    IXtextDocument doc = this.xtextEditorInput.getDocument();
     Collection<Event> events = doc.readOnly(res -> EcoreUtil.copyAll(((Statemachine) res.getContents().get(0)).getEvents()));
     this.listViewer.setInput(events.toArray());
   }

@@ -58,7 +58,7 @@ public class StatemachineMultiPageEditor extends MultiPageEditorPart
 
     try
     {
-      this.formPageIndex = addPage(this.formEditor, new XtextEditorBasedEditorInput(this.sourceEditor));
+      this.formPageIndex = addPage(this.formEditor, new XtextDocumentBasedEditorInput(this.sourceEditor.getDocument()));
       setPageText(this.formPageIndex, "States");
     }
     catch (PartInitException e)
@@ -72,6 +72,7 @@ public class StatemachineMultiPageEditor extends MultiPageEditorPart
   {
     if (newPageIndex == this.formPageIndex)
     {
+      // when the GUI editor becomes visible, synchronize with the Xtext document
       this.formEditor.refreshInput();
     }
     super.pageChange(newPageIndex);
