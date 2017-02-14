@@ -1,0 +1,1 @@
+# xtext-multi-edit-example
